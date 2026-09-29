@@ -10,6 +10,7 @@ import { routes } from './routes.js';
 import { Navbar } from './components/Navbar.js';
 import { startParticles, startCursorGlow, startTilt } from './ui/effects.js';
 import { toast } from './ui/toast.js';
+import { isStaticMode } from './api/client.js';
 
 document.getElementById('year').textContent = new Date().getFullYear();
 
@@ -34,6 +35,11 @@ async function boot() {
   sessionStorage.setItem('nexus.booted', '1');
   document.getElementById('boot').classList.add('done');
   if (snap.status === 'rejected') toast('Could not load live quota data. Retrying in the background…', 'error');
+  // Let the user know when the app is running without a backend (e.g. GitHub Pages)
+  if (isStaticMode() && !sessionStorage.getItem('nexus.staticNotice')) {
+    sessionStorage.setItem('nexus.staticNotice', '1');
+    toast('Demo mode: no backend detected, so your data is stored in this browser only.', 'info', 7000);
+  }
 }
 
 startParticles(document.getElementById('particles'));

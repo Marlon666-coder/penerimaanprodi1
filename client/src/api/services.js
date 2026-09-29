@@ -5,7 +5,7 @@
  * To switch to Supabase / Firebase / another backend, re-implement these
  * functions (same names, same return shapes) — the UI stays untouched.
  */
-import { request } from './client.js';
+import { request, isStaticMode } from './client.js';
 
 export const authApi = {
   register: (data) => request('/api/auth/register', { method: 'POST', body: data }),
@@ -42,10 +42,18 @@ export const adminApi = {
 };
 
 /**
- * Realtime quota feed (Server-Sent Events). Calls `onSnapshot({programs, stats})`
- * whenever any seat changes. Returns an unsubscribe function.
+ * Realtime quota feed. Calls `onSnapshot({programs, stats})` whenever any seat
+ * changes, and returns an unsubscribe function.
+ *  - server mode: Server-Sent Events (/api/stream)
+ *  - static mode: in-browser events from the localStorage backend (also syncs
+ *    across tabs via the storage event)
  */
 export function subscribeSnapshot(onSnapshot) {
+  if (isStaticMode()) {
+    let stop = () => {};
+    import('./localBackend.js').then((m) => { stop = m.subscribeLocal(onSnapshot); });
+    return () => stop();
+  }
   const es = new EventSource('/api/stream');
   es.addEventListener('snapshot', (e) => {
     try { onSnapshot(JSON.parse(e.data)); } catch { /* ignore malformed */ }

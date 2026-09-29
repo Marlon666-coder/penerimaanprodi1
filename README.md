@@ -233,6 +233,44 @@ Tanpa email dan saat DEMO_MODE aktif, kode reset ditampilkan di layar dengan lab
 
 ---
 
+## Deploy
+
+Ada dua cara deploy. Pilih sesuai kebutuhan.
+
+### A. GitHub Pages / hosting statis (paling gampang)
+
+GitHub Pages **tidak bisa menjalankan server Node.js** — dia hanya menyajikan file statis. Itulah kenapa tampilan sebelumnya rusak: semua `fetch('/api/...')` gagal karena tidak ada backend. Solusinya: aplikasi ini otomatis mendeteksi kalau tidak ada server, lalu menjalankan **seluruh logika di browser memakai `localStorage`** (akun, data pendaftar, dan **sistem kuota 50 kursi** tetap berfungsi). Ini sesuai brief yang mengizinkan localStorage untuk prototype.
+
+**Deploy otomatis (sudah disiapkan):**
+1. Push project ini ke GitHub (branch `main`).
+2. Buka **Settings → Pages → Source → GitHub Actions**.
+3. GitHub Action di `.github/workflows/deploy-pages.yml` akan build folder statis dan publish otomatis setiap kali kamu push. URL-nya muncul di tab **Actions** / **Settings → Pages** (mis. `https://username.github.io/penerimaanprodi1/`).
+
+**Deploy manual (alternatif):**
+```bash
+npm run build          # menghasilkan folder dist/ (path relatif, siap sub-path)
+npm run preview        # cek dulu di http://localhost:4173 (mode statis, tanpa backend)
+npm run deploy:pages   # push dist/ ke branch gh-pages
+# lalu Settings → Pages → Branch: gh-pages / root
+```
+
+Catatan mode statis:
+- Semua path dibuat relatif, jadi jalan di sub-path seperti `username.github.io/penerimaanprodi1/`.
+- Data tersimpan **per browser** (bukan terpusat). Cukup untuk demo/portofolio; untuk banyak user pakai cara B.
+- Login admin/user, kuota, dan Reset Demo Data semuanya tetap berfungsi.
+- Ada notifikasi "Demo mode: no backend detected…" supaya jelas datanya lokal.
+
+### B. Full-stack (fitur penuh, data terpusat)
+
+Untuk validasi kuota di server + database yang dipakai bersama banyak user, deploy server Node ke platform yang bisa menjalankan Node.js (**Render, Railway, Fly.io, VPS**, dll):
+
+```
+Build command : (kosong — tanpa dependency)
+Start command : npm start
+Node version  : 22
+```
+Set environment variable dari `.env.example` (minimal `NODE_ENV=production`, `JWT_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`). Di sini aplikasi memakai API + SQLite seperti biasa; mode statis tidak aktif karena `/api/*` tersedia.
+
 ## Production checklist
 
 - `NODE_ENV=production`, `JWT_SECRET` acak (≥ 32 karakter), `ADMIN_PASSWORD` kuat, `DEMO_MODE=false` (server menolak start jika secret belum di-set)
