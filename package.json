@@ -1,0 +1,16 @@
+{
+  "name": "nexus-admission",
+  "version": "1.0.0",
+  "private": true,
+  "description": "NEXUS ADMISSION — futuristic study program admission system (Node.js + SQLite + ES-module SPA)",
+  "type": "module",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning server/index.js",
+    "dev": "node --disable-warning=ExperimentalWarning --watch-path=server --watch-path=shared server/index.js",
+    "reset": "node --disable-warning=ExperimentalWarning scripts/reset-demo.js",
+    "test:quota": "node --disable-warning=ExperimentalWarning scripts/quota-race-test.js"
+  }
+}
